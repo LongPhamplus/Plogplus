@@ -31,6 +31,8 @@ class SinglePageCrawler(BaseCrawler):
     def _extract_forms(self, url, soup):
         for form in soup.find_all("form"):
             inputs = form.find_all("input")
+            method = form.get("method", "GET").upper()
+            self.method = method
             params = [inp.get("name") for inp in inputs if inp.get("name")]
             if params:
                 self.params[url] = list(set(params))

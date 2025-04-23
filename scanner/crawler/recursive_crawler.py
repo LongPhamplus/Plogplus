@@ -28,8 +28,12 @@ class RecursiveCrawler(BaseCrawler):
         for form in soup.find_all("form"):
             inputs = form.find_all("input")
             params = [inp.get("name") for inp in inputs if inp.get("name")]
+            method = form.get("method", "GET").upper()
             if params:
-                self.params[url] = list(set(params))
+                self.params[url] = {
+                    "method": method,
+                    "params": list(set(params))
+                }
 
     def _extract_query_params(self, url):
         parsed = urlparse(url)

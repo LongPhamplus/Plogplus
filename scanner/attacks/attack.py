@@ -1,17 +1,12 @@
 # scanner/attacks/attack.py
 
 from abc import ABC, abstractmethod
-import re
-from urllib.parse import urljoin
 
-import httpx
 
 from scanner.crawler import SinglePageCrawler, RecursiveCrawler
 from scanner.core.http.http_client import HttpClient
-from scanner.core.http.request import Request
 from scanner.core.mutator.mutator import Mutator
-from scanner.utils import logger
-from scanner.core.http.response import Response
+
 
 
 class Attack(ABC):

@@ -1,4 +1,3 @@
-import re
 from urllib.parse import urljoin
 
 from scanner.core.http.http_client import HttpClient
@@ -41,7 +40,7 @@ class LoginHandler:
                 if login_question.lower() == "y":
                     crawler = SinglePageCrawler()
                     await crawler.crawl(url=location)
-
+                    method = crawler.method
                     for url, param_list in crawler.params.items():
                         logger.log_info(f"Tìm thấy form login tại: {url}")
                         logger.log_info(f"Tìm thấy các trường: {param_list}")
@@ -51,15 +50,15 @@ class LoginHandler:
                             value = input(f"Nhập giá trị cho '{param}': ")
                             login_data[param] = value
 
-                        return await self.perform_login(url, login_data, response)
+                        return await self.perform_login(url, login_data, response, method)
                 else:
                     logger.log_info("Bỏ qua đăng nhập.")
         return False
 
-    async def perform_login(self, login_path: str, login_data: dict, original_response) -> bool:
+    async def perform_login(self, login_path: str, login_data: dict, original_response, method: str) -> bool:
         login_url = urljoin(str(original_response.url), login_path)
 
-        get_login_req = Request(url=login_url, method="GET")
+        get_login_req = Request(url=login_url, method=method)
         login_page_resp = await self.http_client.send(get_login_req)
 
         csrf_token = extract_csrf_token(login_page_resp.text)
@@ -69,7 +68,7 @@ class LoginHandler:
 
         req = Request(
             url=login_url,
-            method="POST",
+            method=method,
             post_params=login_data,
             headers={
                 "User-Agent": "Mozilla/5.0",
@@ -96,7 +95,7 @@ class LoginHandler:
                 self.http_client.client.headers["Authorization"] = f"Bearer {jwt_token}"
                 return True
 
-            logger.log_error("Không xác định được kiểu đăng nhập (không có cookie hoặc token).")
+            logger.log_error("Không xác định được kiểu đăng nhập (không có cookie hoặc token) hoặc nhập sai tài khoản và mật khẩu.")
             return False
 
         except Exception as e:

@@ -6,7 +6,7 @@ class Request:
     def __init__(
             self,
             url,
-            method: str = "",
+            method: str = "GET",
             get_params=None,
             post_params=None,
             file_params=None,
@@ -90,6 +90,19 @@ class Request:
             # các kiểu dữ liệu khác
             self._post_params = post_params
 
+        if not file_params:
+            self._file_params = {}
+        else:
+            if isinstance(file_params, dict):
+                self._file_params = deepcopy(file_params)
+            else:
+                # Nếu là list hoặc tuple dạng [(key, value)] thì chuyển thành dict
+                try:
+                    self._file_params = dict(file_params)
+                except Exception:
+                    # Nếu không chuyển được, log lại hoặc gán rỗng để tránh lỗi
+                    self._file_params = {}
+
         self._hostname = url_parts.hostname
         self._scheme = url_parts.scheme or ""
         self._netloc = url_parts.netloc
@@ -119,6 +132,10 @@ class Request:
     @property
     def post_data(self):
         return deepcopy(self._post_params)
+
+    @property
+    def file_params(self):
+        return deepcopy(self._file_params)
 
     @property
     def enc_type(self):

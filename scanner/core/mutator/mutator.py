@@ -27,16 +27,29 @@ def inject_payload_into_params(get_params, payload_info):
 
         if payload_info.payload:
             param_value = payload_info.payload
-
         mutated_params.append([param_name, param_value])
 
     return mutated_params
 
 
+def inject_payload_into_post_data(post_data, payload_info):
+    """
+    Hàm này sẽ tiêm payload vào các tham số POST dạng dict.
+    """
+    mutated_data = {}
+
+    # Kiểm tra các tham số hiện có và tiêm payload vào
+    for param_name, param_value in post_data.items():
+        if payload_info.payload:
+            param_value = payload_info.payload
+
+        mutated_data[param_name] = param_value
+
+    return mutated_data
 class Mutator:
 
     @staticmethod
-    def mutate_get(
+    def mutate(
             request: Request,
             payload: PayloadSource
     ) -> List[Tuple[Request, PayloadInfo]]:
@@ -50,12 +63,13 @@ class Mutator:
         for payload_info in payload:
             if isinstance(payload_info, dict):
                 payload_info = PayloadInfo(**payload_info)
-            mutated_get_params = inject_payload_into_params(request.get_params, payload_info)
-
+            mutated_params = inject_payload_into_params(request.get_params, payload_info)
+            mutated_data = inject_payload_into_post_data(request.post_data, payload_info)
             evil_request = Request(
                 url=request.base_url,
                 method=request.method,
-                get_params=mutated_get_params,
+                get_params=mutated_params,
+                post_params=mutated_data,
             )
             # Append both the mutated request and payload_info as a tuple
             mutated_request.append((evil_request, payload_info))

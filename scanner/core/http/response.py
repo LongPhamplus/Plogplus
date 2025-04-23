@@ -3,16 +3,17 @@ from typing import Optional, List
 
 class Response:
     def __init__(
-            self,
-            response: httpx.Response,
-            url: Optional[str] = None
+        self,
+        response: httpx.Response,
+        url: Optional[str] = None
     ):
-        """Create a new Response object.
-
-        @type response: Response
-        @param response: a requests Response instance."""
         self._response = response
         self._url = url or str(self._response.url)
+        self._json_data = None
+
+    @property
+    def elapsed(self):
+        return self._response.elapsed
 
     @property
     def raw_response(self):
@@ -24,7 +25,12 @@ class Response:
 
     @property
     def json(self):
-        return self._response.json()
+        if self._json_data is None:
+            try:
+                self._json_data = self._response.json()
+            except Exception:
+                self._json_data = None
+        return self._json_data
 
     @property
     def history(self) -> List["Response"]:

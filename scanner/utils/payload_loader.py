@@ -1,7 +1,10 @@
 import configparser
 
-def load_all_payloads(file_path: str, section: str = None) -> list[dict]:
-    config = configparser.ConfigParser()
+from scanner.core.payload import PayloadInfo
+
+
+def load_all_payloads(file_path: str, section: str = None) -> list[PayloadInfo]:
+    config = configparser.RawConfigParser()
     config.read(file_path, encoding="utf-8")
 
     payloads = []
@@ -12,8 +15,10 @@ def load_all_payloads(file_path: str, section: str = None) -> list[dict]:
         sections = config.sections()
 
     for sec in sections:
-        entry = dict(config[sec])
+        entry = dict(config.items(sec, raw=True))
         entry["name"] = sec  # thêm tên section để tiện debug
-        payloads.append(entry)
+        payload_info = PayloadInfo(**entry)
+        payload_info.payload += ' '
+        payloads.append(payload_info)
 
     return payloads
