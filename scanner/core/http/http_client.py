@@ -95,11 +95,10 @@ class HttpClient:
                     # Gửi multipart: file + form-data
                     resp = await self._client.post(
                         url=request.base_url,
-                        headers=request.headers,
-                        files=request.file_data,
-                        data=request.post_data()
+                        files=request.file_params,
+                        follow_redirects=allow_redirects,
+                        data=request.post_data,
                     )
-
                 else:  # application/x-www-form-urlencoded
                     # Gửi form thông thường
                     resp = await self._client.post(
@@ -125,5 +124,5 @@ class HttpClient:
             return None
 
 
-async def close(self):
-        await self._client.aclose()
+    async def close(self):
+            await self._client.aclose()

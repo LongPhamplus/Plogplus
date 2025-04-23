@@ -83,7 +83,8 @@ class XSSAttack(Attack):
             evil_req = Request(
                 url=url,
                 method=self.single_crawler.method,
-                get_params=[[param, "test"] for param in params]
+                get_params=[[param, "test"] for param in params],
+                post_params={param: "test" for param in params},
             )
 
             if isinstance(self.payloads, list):

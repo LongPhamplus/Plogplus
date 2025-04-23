@@ -6,7 +6,7 @@ def parse_args():
     parser.add_argument(
         "-m",
         "--module",
-        choices=["xss", "exec"],
+        choices=["xss", "exec", "sqli", "upload"],
         help="Attack module to use (if not set, all modules will be executed)"
     )
     parser.add_argument("-c" ,"--cookie", help="Cookies to use")

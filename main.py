@@ -4,6 +4,7 @@ import asyncio
 
 from cli.parser import parse_args
 from scanner.attacks.modules.sqli.sqli_main import SQLIAttack
+from scanner.attacks.modules.upload.upload_main import UploadAttack
 from scanner.core.http.request import Request
 from scanner.core.http.http_client import HttpClient
 from scanner.core.mutator.mutator import Mutator
@@ -56,6 +57,7 @@ async def main():
         "xss": XSSAttack,
         "exec": ExecAttack,
         "sqli": SQLIAttack,
+        "upload": UploadAttack,
     }
 
     if args.module:

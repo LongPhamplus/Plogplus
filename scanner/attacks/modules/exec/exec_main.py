@@ -28,7 +28,7 @@ class ExecAttack(Attack):
         self.request = request
         self.payloads = load_all_payloads(payload_file, section=section)
         self.http_client = http_client
-        self.timeout_threshold = 10
+        self.timeout_threshold = 5
 
     async def run(self):
         log_info(f"[EXEC] Bắt đầu quét: {self.request.base_url}")
@@ -53,7 +53,6 @@ class ExecAttack(Attack):
                 for req, pay_inf in mutated_requests:
                     response = await self.http_client.send(req)
                     elapsed = response.elapsed.total_seconds()
-
                     if response and elapsed > self.timeout_threshold:
                         log_info(
                             f"[EXEC_BLIND] Phản hồi chậm tại {req.base_url} với payload {pay_inf.payload} ({elapsed:.2f}s)")

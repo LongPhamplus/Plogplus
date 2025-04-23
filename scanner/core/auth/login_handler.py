@@ -26,6 +26,7 @@ class LoginHandler:
 
     async def check_redirect_to_login(self, request: Request) -> bool:
         response = await self.http_client.send(request, allow_redirects=True)
+        check_login = False
 
         if response is None:
             logger.log_error("Không thể gửi request để kiểm tra redirect.")
@@ -46,11 +47,24 @@ class LoginHandler:
                         logger.log_info(f"Tìm thấy các trường: {param_list}")
 
                         login_data = {}
+
                         for param in param_list:
                             value = input(f"Nhập giá trị cho '{param}': ")
                             login_data[param] = value
 
-                        return await self.perform_login(url, login_data, response, method)
+                        if crawler.hidden_params:
+                            for hidden_url, params in crawler.hidden_params.items():
+                                for param_name, param_value in params.items():
+                                    # print(param_name, param_value)
+                                    login_data[param_name] = param_value
+                        if crawler.submit_params:
+                            for submit_url, params in crawler.submit_params.items():
+                                for param_name, param_value in params.items():
+                                    # print(param_name, param_value)
+                                    login_data[param_name] = param_value
+                        check_login = await self.perform_login(url, login_data, response, method)
+
+                    return check_login
                 else:
                     logger.log_info("Bỏ qua đăng nhập.")
         return False

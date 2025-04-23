@@ -28,7 +28,7 @@ class SQLIAttack(Attack):
         self.request = request
         self.payloads = load_all_payloads(payload_file, section=section)
         self.http_client = http_client
-        self.timeout_threshold = 10
+        self.timeout_threshold = 5
 
     async def run(self):
         log_info(f"[SQLI] Bắt đầu quét: {self.request.base_url}")

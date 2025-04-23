@@ -11,3 +11,6 @@ class PayloadInfo:
     injection_type: str = ""
     delimiter: str = ""
     language: str = ""
+    filename: str = ""
+    content: str = ""
+    mime_type: str = ""
