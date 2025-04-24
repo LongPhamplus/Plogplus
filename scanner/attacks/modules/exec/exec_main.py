@@ -68,5 +68,5 @@ class ExecAttack(Attack):
                     for req, pay_inf in mutated_requests:
                         response = await self.http_client.send(req)
                         detector = CommandInjectionDetector()
-                        if response and detector.detect(response, pay_inf):
+                        if response and await detector.detect(response, pay_inf):
                             log_info(f"[EXEC] Có thể có lỗ hổng tại {req.base_url} với payload {pay_inf.payload}")

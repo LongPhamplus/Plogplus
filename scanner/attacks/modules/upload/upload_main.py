@@ -53,7 +53,6 @@ class UploadAttack(Attack):
                 mutated_requests = self.mutator.mutate(evil_req, [payload])
                 for req, pay_inf in mutated_requests:
                     response = await self.http_client.send(req)
-                    print(req.file_params)
                     detector = UploadDetector()
-                    if response and detector.detect(response, pay_inf):
-                        log_info(f"[SQLI] Có thể có lỗ hổng tại {req.base_url} với payload {pay_inf.payload}")
+                    if response and await detector.detect(response, pay_inf):
+                        log_info(f"[UPLOAD] Có thể có lỗ hổng tại {req.base_url} với payload dạng {pay_inf.type}")

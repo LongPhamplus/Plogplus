@@ -73,5 +73,5 @@ class SQLIAttack(Attack):
                         for req, pay_inf in mutated_requests:
                             response = await self.http_client.send(req)
                             detector = SQLIDetector()
-                            if response and detector.detect(response, pay_inf):
+                            if response and await detector.detect(response, pay_inf):
                                 log_info(f"[SQLI] Có thể có lỗ hổng tại {req.base_url} với payload {pay_inf.payload}")

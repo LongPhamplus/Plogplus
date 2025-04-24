@@ -83,7 +83,7 @@ class CommandInjectionDetector(Detector):
             r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"   # Timestamp từ các lệnh như ls -la
         ]
 
-    def detect(self, response: Response, payload_info: PayloadInfo) -> bool:
+    async def detect(self, response: Response, payload_info: PayloadInfo) -> bool:
         """
         Phân tích phản hồi để xác định xem có bị command injection hay không.
 

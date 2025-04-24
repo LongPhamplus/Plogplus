@@ -10,7 +10,7 @@ class Detector(ABC):
     """
 
     @abstractmethod
-    def detect(
+    async def detect(
             self,
             response,
             payload_info: PayloadInfo

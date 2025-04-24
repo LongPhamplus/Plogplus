@@ -49,7 +49,7 @@ class SQLIDetector(Detector):
             "Oracle": ["oracle", "dual", "sys", "dbms_", "session_user", "sys_context"]
         }
 
-    def detect(
+    async def detect(
             self,
             response,
             payload_info: PayloadInfo

@@ -14,3 +14,4 @@ class PayloadInfo:
     filename: str = ""
     content: str = ""
     mime_type: str = ""
+    type: str = ""
