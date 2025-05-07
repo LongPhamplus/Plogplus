@@ -3,9 +3,11 @@ from urllib.parse import urljoin
 from scanner.core.http.http_client import HttpClient
 from scanner.core.http.request import Request
 from scanner.core.http.response import Response
+from scanner.core.mutator import Mutator
 from scanner.utils import logger
 from scanner.crawler import SinglePageCrawler
 from scanner.core.auth.token_extractor import extract_csrf_token, extract_jwt_from_response
+from scanner.attacks.modules.bruteforce import BruteForceAttack
 
 def get_redirect_url(response):
     """
@@ -21,8 +23,13 @@ def get_redirect_url(response):
     return ""
 
 class LoginHandler:
-    def __init__(self, http_client: HttpClient):
+    def __init__(
+            self,
+            http_client: HttpClient,
+            report=None,
+    ):
         self.http_client = http_client
+        self.report = report
 
     async def check_redirect_to_login(self, request: Request) -> bool:
         response = await self.http_client.send(request, allow_redirects=True)
@@ -38,15 +45,14 @@ class LoginHandler:
             if "login" in location.lower():
                 logger.log_warning("Chuyển hướng qua trang đăng nhập, bạn có muốn đăng nhập ? [Y/n] ", "")
                 login_question = input()
+                crawler = SinglePageCrawler()
+                await crawler.crawl(url=location)
+                method = crawler.method
+                login_data = {}
                 if login_question.lower() == "y":
-                    crawler = SinglePageCrawler()
-                    await crawler.crawl(url=location)
-                    method = crawler.method
                     for url, param_list in crawler.params.items():
                         logger.log_info(f"Tìm thấy form login tại: {url}")
                         logger.log_info(f"Tìm thấy các trường: {param_list}")
-
-                        login_data = {}
 
                         for param in param_list:
                             value = input(f"Nhập giá trị cho '{param}': ")
@@ -66,7 +72,17 @@ class LoginHandler:
 
                     return check_login
                 else:
-                    logger.log_info("Bỏ qua đăng nhập.")
+                    mutator = Mutator()
+                    scanner = BruteForceAttack(
+                        request=request,
+                        single_crawler=crawler,
+                        mutator=mutator,
+                        http_client=self.http_client,
+                        report=self.report,
+                    )
+                    check_login = await scanner.run()
+                    return check_login
+
         return False
 
     async def perform_login(self, login_path: str, login_data: dict, original_response, method: str) -> bool:

@@ -17,8 +17,10 @@ class UploadAttack(Attack):
             http_client: HttpClient,
             recursive_crawler=RecursiveCrawler,
             section: str = None,
+            report=None,
     ):
-        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler)
+        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler,
+                         report=report)
 
         payload_file = os.path.join(os.path.dirname(__file__), "payload.ini")
 
@@ -54,5 +56,13 @@ class UploadAttack(Attack):
                 for req, pay_inf in mutated_requests:
                     response = await self.http_client.send(req)
                     detector = UploadDetector()
+                    report_param = req.get_params if req.method == "GET" else req.post_data
                     if response and await detector.detect(response, pay_inf):
+                        self.log_vulnerability(
+                            vuln_type="UPLOAD",
+                            url=req.base_url,
+                            param=report_param,
+                            payload=pay_inf,
+                            evidence="Có thể upload và thực thi file chứa mã độc."
+                        )
                         log_info(f"[UPLOAD] Có thể có lỗ hổng tại {req.base_url} với payload dạng {pay_inf.type}")

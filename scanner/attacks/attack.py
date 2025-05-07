@@ -18,12 +18,25 @@ class Attack(ABC):
             single_crawler: SinglePageCrawler = None,
             recursive_crawler: RecursiveCrawler = None,
             mutator: Mutator = None,
+            report=None,
     ):
         super().__init__()
         self.http_client = HttpClient()
         self.single_crawler = single_crawler
         self.recursive_crawler = recursive_crawler
         self.mutator = mutator
+        self.report = report
+
+    def log_vulnerability(self, vuln_type, url, param, payload, evidence):
+        """Ghi log phát hiện vào report"""
+        if self.report:
+            self.report.add_entry(
+                vuln_type=vuln_type,
+                url=url,
+                param=param,
+                payload=payload,
+                evidence=evidence
+            )
 
     @abstractmethod
     async def run(self):

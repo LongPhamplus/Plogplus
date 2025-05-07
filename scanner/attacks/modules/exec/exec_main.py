@@ -20,8 +20,10 @@ class ExecAttack(Attack):
             http_client,
             recursive_crawler = RecursiveCrawler,
             section: str = None,
+            report=None,
     ):
-        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler)
+        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler,
+                         report=report)
 
         payload_file = os.path.join(os.path.dirname(__file__), "payload.ini")
 
@@ -32,8 +34,8 @@ class ExecAttack(Attack):
 
     async def run(self):
         log_info(f"[EXEC] Bắt đầu quét: {self.request.base_url}")
-
         for url, params in self.single_crawler.params.items():
+
             evil_req = Request(
                 url=url,
                 method=self.single_crawler.method,
@@ -53,7 +55,15 @@ class ExecAttack(Attack):
                 for req, pay_inf in mutated_requests:
                     response = await self.http_client.send(req)
                     elapsed = response.elapsed.total_seconds()
+                    report_param = req.get_params if req.method == "GET" else req.post_data
                     if response and elapsed > self.timeout_threshold:
+                        self.log_vulnerability(
+                            vuln_type="EXEC_BLIND",
+                            url=req.base_url,
+                            param=report_param,
+                            payload=pay_inf,
+                            evidence="Có thể chèn mã độc và gây delay cho chương trình."
+                        )
                         log_info(
                             f"[EXEC_BLIND] Phản hồi chậm tại {req.base_url} với payload {pay_inf.payload} ({elapsed:.2f}s)")
                         delay_triggered = True
@@ -66,7 +76,15 @@ class ExecAttack(Attack):
                 for payload in normal_payloads:
                     mutated_requests = self.mutator.mutate(evil_req, [payload])
                     for req, pay_inf in mutated_requests:
+                        report_param = req.get_params if req.method == "GET" else req.post_data
                         response = await self.http_client.send(req)
                         detector = CommandInjectionDetector()
                         if response and await detector.detect(response, pay_inf):
+                            self.log_vulnerability(
+                                vuln_type="EXEC",
+                                url=req.base_url,
+                                param=report_param,
+                                payload=pay_inf,
+                                evidence="Có thể chèn mã độc và gây delay cho chương trình."
+                            )
                             log_info(f"[EXEC] Có thể có lỗ hổng tại {req.base_url} với payload {pay_inf.payload}")

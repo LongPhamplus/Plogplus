@@ -12,6 +12,7 @@ from scanner.crawler import SinglePageCrawler
 from scanner.attacks.modules.xss.xss_main import XSSAttack
 from scanner.attacks.modules.exec.exec_main import ExecAttack
 from scanner.core.auth.login_handler import LoginHandler
+from scanner.reports.html_report import HTMLReport
 from scanner.utils.logger import log_error, log_warning
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -35,11 +36,14 @@ async def main():
     cookie_dict = parse_cookie_string(args.cookie)
     url = args.url
 
+    report = HTMLReport()
+
     http_client = HttpClient()
-    login_handler = LoginHandler(http_client=http_client)
+    login_handler = LoginHandler(http_client=http_client, report=report)
 
     request = Request(url=url)
     login_status = await login_handler.check_redirect_to_login(request)
+
 
     if not login_status:
         log_error("Đăng nhập thất bại")
@@ -75,10 +79,12 @@ async def main():
             request=request,
             single_crawler=single_crawler,
             mutator=mutator,
-            http_client=http_client
+            http_client=http_client,
+            report=report,
         )
         await scanner.run()
 
+    report.save("scan_report.html")
 
 if __name__ == "__main__":
     asyncio.run(main())

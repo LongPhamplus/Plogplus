@@ -1,3 +1,5 @@
+import re
+
 from scanner.attacks import Detector
 from scanner.core.payload import PayloadInfo
 from scanner.utils.logger import log_warning
@@ -18,7 +20,8 @@ class SQLIDetector(Detector):
                 "mysql_fetch",
                 "unknown column",
                 "mysql_num_rows()",
-                "supplied argument is not a valid mysql"
+                "supplied argument is not a valid mysql",
+                "the used select statements have a different number of columns",
             ],
             "PostgreSQL": [
                 "pg_query():",
@@ -45,8 +48,15 @@ class SQLIDetector(Detector):
         self.info_signatures = {
             "MySQL": ["mysql", "version()", "@localhost", "user()"],
             "PostgreSQL": ["postgresql", "version()", "pg_", "postgres"],
-            "MSSQL": ["microsoft sql server", "db_name", "master", "sa"],
+            "MSSQL": ["microsoft sql server", "db_name", "master"],
             "Oracle": ["oracle", "dual", "sys", "dbms_", "session_user", "sys_context"]
+        }
+
+        self.version_patterns = {
+            "MySQL": re.compile(r"\b\d+\.\d+\.\d+(?:-[\w\d]+)?\b.*mysql", re.IGNORECASE),
+            "PostgreSQL": re.compile(r"postgresql\s+\d+\.\d+", re.IGNORECASE),
+            "MSSQL": re.compile(r"microsoft\s+sql\s+server\s+\d+", re.IGNORECASE),
+            "Oracle": re.compile(r"oracle\s+database\s+\d+[c|g|i]", re.IGNORECASE)
         }
 
     async def detect(
@@ -65,19 +75,25 @@ class SQLIDetector(Detector):
             bool: True nếu nghi ngờ có SQLi
         """
         content = response.text.lower()
-
+        # print(content)
         # Kiểm tra lỗi SQLi
         for dbms, keywords in self.error_signatures.items():
             for keyword in keywords:
-                if keyword in content:
+                if keyword in content and payload_info.language == dbms:
                     # log_warning(f"[!] Possible SQLi detected via error message: {dbms}")
+                    # print(keyword, "error")
                     return True
 
         # Kiểm tra thông tin bị lộ (e.g., version, user)
         for dbms, indicators in self.info_signatures.items():
             for indicator in indicators:
-                if indicator in content:
+                if indicator in content and payload_info.language == dbms:
                     # log_warning(f"[!] Possible SQLi detected via info disclosure: {dbms}")
+                    # print(indicator, "info")
                     return True
 
+        for dbms, pattern in self.version_patterns.items():
+            if pattern.search(content):
+                # print(f"[!] Detected {dbms} version leak")
+                return True
         return False

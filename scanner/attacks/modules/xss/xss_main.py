@@ -64,8 +64,10 @@ class XSSAttack(Attack):
             http_client: HttpClient,
             recursive_crawler=RecursiveCrawler,
             section: str = None,
+            report=None,
     ):
-        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler)
+        super().__init__(single_crawler=single_crawler, mutator=mutator, recursive_crawler=recursive_crawler,
+                         report=report)
 
         payload_file = os.path.join(os.path.dirname(__file__), "payload.ini")
 
@@ -94,7 +96,15 @@ class XSSAttack(Attack):
                 # Gửi các request và phân tích response
             for req, pay_inf in mutated_requests:
                 response = await self.http_client.send(req)
+                report_param = req.get_params if req.method == "GET" else req.post_data
                 if response and is_vulnerable(response, pay_inf):
+                    self.log_vulnerability(
+                        vuln_type="XSS",
+                        url=req.base_url,
+                        param=report_param,
+                        payload=pay_inf,
+                        evidence="Phản hồi chứa payload"
+                    )
                     log_info(f"[XSS] Có thể có lỗ hổng tại {req.base_url} với payload {pay_inf.payload}")
                     # Sử dụng callback domain để kiểm tra thêm
 

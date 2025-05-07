@@ -55,7 +55,6 @@ class SinglePageCrawler(BaseCrawler):
             if submit_params:
                 self.submit_params[url] = dict(submit_params)
 
-    #  Nên sửa thành phân biệt giữa param input và param submit
     def _extract_query_params(self, url):
         parsed = urlparse(url)
         query_params = list(parse_qs(parsed.query).keys())

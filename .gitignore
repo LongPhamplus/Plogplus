@@ -9,3 +9,6 @@ __pycache__/
 # Virtual Environment
 venv/
 .venv/
+
+# Report file
+scan_report.html

@@ -22,7 +22,7 @@ def get_file_path(response, payload_info: PayloadInfo):
         # Xử lý hoặc trả về thông tin về đường dẫn này
         return file_path
     else:
-        log_warning("Không tìm thấy đường dẫn mà file được upload.")
+        # log_warning("Không tìm thấy đường dẫn mà file được upload.")
         return None
 
 def normalize(base_url, relative_path):
