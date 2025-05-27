@@ -14,6 +14,7 @@ class SinglePageCrawler(BaseCrawler):
         self.params = {}
         self.hidden_params = {}
         self.submit_params = {}
+        self.method = "GET"
 
     async def crawl(self, url: str):
         try:

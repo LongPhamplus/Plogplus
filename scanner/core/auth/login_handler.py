@@ -7,7 +7,6 @@ from scanner.core.mutator import Mutator
 from scanner.utils import logger
 from scanner.crawler import SinglePageCrawler
 from scanner.core.auth.token_extractor import extract_csrf_token, extract_jwt_from_response
-from scanner.attacks.modules.bruteforce import BruteForceAttack
 
 def get_redirect_url(response):
     """
@@ -72,6 +71,7 @@ class LoginHandler:
 
                     return check_login
                 else:
+                    from scanner.attacks.modules.bruteforce import BruteForceAttack
                     mutator = Mutator()
                     scanner = BruteForceAttack(
                         request=request,

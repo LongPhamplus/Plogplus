@@ -2,7 +2,7 @@ import os
 import time
 
 from scanner.core.http import Request
-from scanner.attacks import Attack
+from scanner.attacks.attack import Attack
 from scanner.crawler import RecursiveCrawler
 from scanner.utils.payload_loader import load_all_payloads
 from scanner.utils.logger import log_info
@@ -33,7 +33,6 @@ class SQLIAttack(Attack):
         self.timeout_threshold = 5
 
     async def run(self):
-        log_info(f"[SQLI] Bắt đầu quét: {self.request.base_url}")
         for url, params in self.single_crawler.params.items():
             method = self.single_crawler.method
 

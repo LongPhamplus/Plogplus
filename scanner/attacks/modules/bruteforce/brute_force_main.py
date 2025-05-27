@@ -1,6 +1,6 @@
 import os
 
-from scanner.attacks import Attack
+from scanner.attacks.attack import Attack
 from scanner.core.http import Request, HttpClient, Response
 from scanner.crawler import RecursiveCrawler
 from scanner.utils.logger import log_info, log_success, log_error
@@ -56,8 +56,6 @@ class BruteForceAttack(Attack):
         self.http_client = http_client
         self.payloads = load_credentials(username_file, password_file)
     async def run(self):
-        log_info(f"[BRUTEFORCE] Bắt đầu quét: {self.request.base_url}")
-
         for url, params in self.single_crawler.params.items():
             method = self.single_crawler.method.upper()
 

@@ -29,7 +29,6 @@ class UploadAttack(Attack):
         self.payloads = load_all_payloads(payload_file, section=section)
 
     async def run(self):
-        log_info(f"[UPLOAD] Bắt đầu quét: {self.request.base_url}")
         # Lấy danh sách param từ crawler
         post_params = {}
         if self.single_crawler.hidden_params:
@@ -43,11 +42,32 @@ class UploadAttack(Attack):
                     # print(param_name, param_value)
                     post_params[param_name] = param_value
         for url, params in self.single_crawler.params.items():
+            method = self.single_crawler.method
+
+            # Dữ liệu gốc từ crawler
+            hidden_params = self.single_crawler.hidden_params.get(url, {})
+            submit_params = self.single_crawler.submit_params.get(url, {})
+
+            # Chỉ thay đổi giá trị các param tấn công
+            attack_values = {param: ("test.jpg", "fake file content", "application/octet-stream") for param in params}
+
+            # Gộp lại tất cả param
+            combined_params = {
+                **hidden_params,
+                **submit_params,
+            }
+
+            if method.upper() == "GET":
+                get_params = [[k, v] for k, v in combined_params.items()]
+                post_params = {}
+            else:
+                get_params = []
+                post_params = combined_params
 
             evil_req = Request(
                 url=url,
                 method=self.single_crawler.method,
-                file_params={param: ("test.jpg", "fake file content", "application/octet-stream") for param in params},
+                file_params=attack_values,
                 post_params=post_params
             )
 

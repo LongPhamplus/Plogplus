@@ -12,3 +12,4 @@ venv/
 
 # Report file
 scan_report.html
+crawled_urls.txt

@@ -33,14 +33,35 @@ class ExecAttack(Attack):
         self.timeout_threshold = 5
 
     async def run(self):
-        log_info(f"[EXEC] Bắt đầu quét: {self.request.base_url}")
         for url, params in self.single_crawler.params.items():
+            method = self.single_crawler.method
+
+            # Dữ liệu gốc từ crawler
+            hidden_params = self.single_crawler.hidden_params.get(url, {})
+            submit_params = self.single_crawler.submit_params.get(url, {})
+
+            # Chỉ thay đổi giá trị các param tấn công
+            attack_values = {param: "1" for param in params}
+
+            # Gộp lại tất cả param
+            combined_params = {
+                **hidden_params,
+                **submit_params,
+                **attack_values
+            }
+
+            if method.upper() == "GET":
+                get_params = [[k, v] for k, v in combined_params.items()]
+                post_params = {}
+            else:
+                get_params = []
+                post_params = combined_params
 
             evil_req = Request(
                 url=url,
-                method=self.single_crawler.method,
-                get_params=[[param, "test"] for param in params],
-                post_params={param: "test" for param in params},
+                method=method,
+                get_params=get_params,
+                post_params=post_params,
             )
             # Tách payloads delay và normal
 

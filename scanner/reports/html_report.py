@@ -9,6 +9,25 @@ class HTMLReport(Report):
         self.entries = []
         self.title = title
 
+    def get_remediations_summary(self):
+        suggestions = {
+            "XSS": "Áp dụng encode đầu ra (output encoding) và sử dụng CSP (Content Security Policy).",
+            "SQLI": "Sử dụng prepared statements (tham số hóa truy vấn) để tránh chèn mã SQL.",
+            "SQLI_BLIND": "Dùng prepared statements và tránh phản hồi khác nhau khi xử lý đầu vào bất thường.",
+            "EXEC": "Không truyền trực tiếp đầu vào người dùng vào lệnh hệ thống. Dùng thư viện an toàn hoặc giới hạn đầu vào.",
+            "EXEC_BLIND": "Tránh sử dụng các lệnh hệ thống trong ứng dụng. Nếu cần thiết, xác thực kỹ đầu vào và áp dụng timeout.",
+            "UPLOAD": "Kiểm tra loại tệp, đổi tên tệp và lưu ở thư mục không thực thi được mã.",
+            "BRUTEFORCE": "Giới hạn số lần đăng nhập, thêm CAPTCHA và xác thực hai yếu tố.",
+        }
+
+        seen_types = set(entry["type"] for entry in self.entries)
+        html_list = "<ul>\n"
+        for vuln_type in seen_types:
+            remediation = suggestions.get(vuln_type, "Xem xét cấu hình bảo mật và lọc đầu vào người dùng.")
+            html_list += f"<li><strong>{html.escape(vuln_type)}:</strong> {html.escape(remediation)}</li>\n"
+        html_list += "</ul>"
+        return html_list
+
     def add_entry(self, vuln_type, url, param, payload, evidence):
         self.entries.append({
             "type": vuln_type,
@@ -78,7 +97,11 @@ class HTMLReport(Report):
             if isinstance(entry['payload'], dict):
                 payload = entry['payload']
             else:
-                payload = entry['payload'].payload
+                payload_attr = getattr(entry['payload'], 'payload', None)
+                if payload_attr and str(payload_attr).strip():
+                    payload = payload_attr
+                else:
+                    payload = getattr(entry['payload'], 'content', None)
             result_html += f"""
                     <tr>
                         <td class="type">{html.escape(str(entry['type']))}</td>
@@ -88,11 +111,16 @@ class HTMLReport(Report):
                         <td>{html.escape(str(entry['evidence']))}</td>
                     </tr>
                 """
-
         result_html += """
-        </tbody>
-    </table>
-</body>
+            </tbody>
+        </table>
+
+        <h2>Gợi ý khắc phục</h2>
+        <p>Dưới đây là một số hướng xử lý để vá các lỗ hổng đã phát hiện:</p>
+        """
+        result_html += self.get_remediations_summary()
+        result_html += """
+    </body>
 </html>
 """
         return result_html
